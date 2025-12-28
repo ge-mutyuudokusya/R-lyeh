@@ -1,0 +1,95 @@
+body {
+  background: #040807;
+  color: #cfd8d3;
+  font-family: "Yu Mincho", serif;
+  margin: 0;
+}
+
+main {
+  width: 640px;
+  margin: 40px auto;
+}
+
+h1 {
+  letter-spacing: 0.5em;
+}
+
+.warning {
+  font-size: 0.9em;
+  color: #8fa39a;
+}
+
+#board {
+  height: 320px;
+  overflow-y: auto;
+  border: 1px solid #233;
+  padding: 10px;
+  margin-bottom: 10px;
+  background: rgba(0,0,0,0.5);
+}
+
+.post {
+  margin-bottom: 8px;
+  font-size: 0.9em;
+}
+
+.post span {
+  color: #6f8f7f;
+}
+
+textarea, input {
+  width: 100%;
+  background: #000;
+  color: #cfd8d3;
+  border: 1px solid #233;
+  margin-bottom: 6px;
+}
+
+button {
+  background: #112;
+  color: #cfd8d3;
+  border: 1px solid #344;
+  cursor: pointer;
+}
+
+/* 汚染度エフェクト */
+body.mid {
+  filter: blur(0.6px) contrast(1.1);
+}
+
+body.high {
+  filter: blur(1.4px) contrast(1.4) hue-rotate(15deg);
+}
+
+body.insane {
+  animation: shake 0.12s infinite;
+  filter: invert(1) blur(2px);
+}
+
+@keyframes shake {
+  0% { transform: translate(1px, 1px); }
+  50% { transform: translate(-2px, -1px); }
+  100% { transform: translate(1px, -2px); }
+}
+
+/* ノイズ */
+#noise {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      rgba(255,255,255,0.03),
+      rgba(255,255,255,0.03) 1px,
+      transparent 1px,
+      transparent 2px
+    );
+  animation: flicker 0.15s infinite;
+}
+
+@keyframes flicker {
+  0% { opacity: 0.05; }
+  50% { opacity: 0.1; }
+  100% { opacity: 0.05; }
+}
