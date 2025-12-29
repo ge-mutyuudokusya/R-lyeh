@@ -5,14 +5,229 @@
   <title>ルルイエ</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- CSS -->
-  <link rel="stylesheet" href="style.css">
-
   <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-</head>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js">  // 🌊 深海音（40Hz）
 
+  function playDeepSound() {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.value = 40;
+    gain.gain.value = 0.2;
+    osc.connect(gain).connect(audioCtx.destination);
+    osc.start();
+    return osc;
+  }
+
+  function triggerEvent() {
+    document.body.classList.add('event-dark','shake');
+    document.getElementById('scanlines').style.display = 'block';
+    const osc = playDeepSound();
+
+    setTimeout(() => {
+      document.body.classList.remove('event-dark','shake');
+      document.getElementById('scanlines').style.display = 'none';
+      osc.stop();
+      audioCtx.close();
+    }, 4000);
+  }
+
+  // ⏳ 定期イベント（3〜6分ランダム）
+  function scheduleEvent() {
+    const next = Math.random() * 180000 + 180000;
+    setTimeout(() => {
+      triggerEvent();
+      scheduleEvent();
+    }, next);
+  }
+  scheduleEvent();
+  // 🕯 定期的イベント（深海接触）
+  const crt = document.getElementById('crt');
+
+
+  function playDeepSeaSound() {
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+
+    osc.type = 'sine';
+    osc.frequency.value = 40; // 40Hz 深海音
+    gain.gain.value = 0.15;
+
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+
+    osc.start();
+    setTimeout(() => osc.stop(), 4000);
+  }
+
+  function deepSeaEvent() {
+    document.body.classList.add('event-dark','event-shake');
+    crt.classList.add('active');
+    playDeepSeaSound();
+
+    setTimeout(() => {
+      document.body.classList.remove('event-dark','event-shake');
+      crt.classList.remove('active');
+    }, 5000);
+  }
+
+  // ⏳ 不定期に発生（3〜7分）
+  function scheduleEvent() {
+    const next = Math.random() * (420000 - 180000) + 180000;
+    setTimeout(() => {
+      deepSeaEvent();
+      scheduleEvent();
+    }, next);
+  }
+
+  scheduleEvent();
+</script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+  <style>
+    body { margin:0; background:#020403; color:#cfd8c3; font-family:"Yu Mincho",serif; }
+    header { padding:16px; text-align:center; border-bottom:1px solid #133; }
+    #board {  height: 520px;  overflow-y: auto; border: 1px solid #233;  padding:10px; margin: 30px;  margin-bottom: 10px;  background: rgba(0,0,0,0.5);}
+   .post { border-bottom:1px dashed #244; padding:12px 0; }
+    .time { font-size:11px; opacity:0.6; }
+    #form { max-width:800px; margin:24px auto; padding:16px; border:1px solid #133; }
+    textarea { width:100%; height:80px; background:#000; color:#cfd8c3; border:1px solid #244; }
+    button { margin-top:8px; background:#021; color:#cfd8c3; border:1px solid #355; padding:6px 12px; }
+    /* ===== 異常イベント演出 ===== */
+body.anomaly {
+  animation: screenShake 0.1s infinite;
+  background-color: #300;
+  filter: contrast(200%) saturate(300%);
+}/* 共通 */
+body[class^="anomaly"] {
+  transition: all 0.2s;
+}
+
+/* 赤転のみ */
+body.anomaly-red::before {
+  content:'';
+  position:fixed;
+  inset:0;
+  background:rgba(180,0,0,0.6);
+  z-index:9998;
+  pointer-events:none;
+}
+
+/* 揺れのみ */
+body.anomaly-shake {
+  animation: screenShake 0.1s infinite;
+}
+
+/* CRT走査線 */
+body.anomaly-crt::after {
+  content:'';
+  position:fixed;
+  inset:0;
+  background:repeating-linear-gradient(
+    to bottom,
+    rgba(255,255,255,0.04) 16px,
+    rgba(255,255,255,0.04) 24px,
+    rgba(0,0,0,0) 8px,
+    rgba(0,0,0,0) 30px
+  );
+  z-index:9999;
+  pointer-events:none;
+  animation: scanline 0.15s linear infinite;
+}
+
+/* 全部盛り（レア） */
+body.anomaly-full {
+  animation: screenShake 0.08s infinite;
+  filter: contrast(200%) saturate(300%);
+}
+body.anomaly-full::before {
+  content:'';
+  position:fixed;
+  inset:0;
+  background:rgba(200,0,0,0.7);
+  z-index:9998;
+}
+body.anomaly-full::after {
+  content:'';
+  position:fixed;
+  inset:0;
+  background:repeating-linear-gradient(
+    to bottom,
+    rgba(255,255,255,0.05) 0px,
+    rgba(255,255,255,0.05) 1px,
+    rgba(0,0,0,0) 2px,
+    rgba(0,0,0,0) 4px
+  );
+  z-index:9999;
+}
+
+@keyframes screenShake {
+  0% { transform:translate(0,0); }
+  25% { transform:translate(2px,-2px); }
+  50% { transform:translate(-2px,2px); }
+  75% { transform:translate(2px,2px); }
+  100% { transform:translate(0,0); }
+}
+
+@keyframes scanline {
+  from { background-position:0 0; }
+  to { background-position:0 4px; }
+}
+
+    .noise { position:fixed; inset:0; pointer-events:none; opacity:0.05;
+      background:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="4"/></filter><rect width="200" height="200" filter="url(%23n)"/></svg>'); }
+    /* 👁 イベント演出 */
+    .event-dark {
+      animation: darken 0.5s forwards;
+    }
+    @keyframes darken { to { background:#000; } }
+
+    .shake {
+      animation: shake 0.1s infinite;
+    }
+    @keyframes shake {
+      0% { transform: translate(0,0); }
+      25% { transform: translate(2px,-2px); }
+      50% { transform: translate(-2px,2px); }
+      75% { transform: translate(2px,2px); }
+      100% { transform: translate(0,0); }
+    }
+
+    .scanlines {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background: repeating-linear-gradient(
+        to bottom,
+        rgba(255,255,255,0.03) 0px,
+        rgba(255,255,255,0.03) 1px,
+        transparent 2px,
+        transparent 4px
+      );
+      opacity: 0.4;
+      mix-blend-mode: overlay;
+    }
+@keyframes shake {0%{transform:translate(0)}20%{transform:translate(-5px,3px)}40%{transform:translate(5px,-3px)}60%{transform:translate(-3px,5px)}80%{transform:translate(3px,-5px)}100%{transform:translate(0)}}
+    .event-dark { background:#000 !important; }
+    .event-shake { animation: shake 0.1s infinite; }
+    .crt {
+      position: fixed; inset:0; pointer-events:none;
+      background: repeating-linear-gradient(
+        to bottom,
+        rgba(255,255,255,0.03) 0px,
+        rgba(0,0,0,0.03) 1px,
+        rgba(0,0,0,0.06) 2px
+      );
+      mix-blend-mode: overlay;
+      opacity:0;
+    }
+    .crt.active { opacity:1; }
+  </style>
+
+<div class="scanlines" id="scanlines" style="display:none"></div>
+</head>
 <body>
 <header>
   <h1>R'lyeh / ルルイエ</h1>
@@ -29,9 +244,178 @@
 
 <div class="noise"></div>
 <div class="crt" id="crt"></div>
-<div class="scanlines" id="scanlines" style="display:none"></div>
 
-<!-- JS（最後に読み込む） -->
-<script src="main.js"></script>
+<script>
+  /* 🔥 Firebase設定（自分のものに差し替え） */
+  const firebaseConfig = {
+  apiKey: "AIzaSyC1IK8k7yfu7rEzGBsQHl9CLHLy1aCwYTE",
+  authDomain: "rlyeh-board.firebaseapp.com",
+  databaseURL: "https://rlyeh-board-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "rlyeh-board",
+  storageBucket: "rlyeh-board.firebasestorage.app",
+  messagingSenderId: "107455035572",
+  appId: "1:107455035572:web:2128ec27aefe2afe6f3fe1"
+};
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+  const postsRef = db.ref('posts');
+
+  const board = document.getElementById('board');
+
+  function addPost(text, time) {
+    const div = document.createElement('div');
+    div.className = 'post';
+    div.innerHTML = `<div>${text}</div><div class="time">${new Date(time).toLocaleString()}</div>`;
+    board.prepend(div);
+  }
+
+  function sendPost() {
+    const input = document.getElementById('input');
+    if (!input.value.trim()) return;
+
+    postsRef.push({
+      text: input.value,
+      time: Date.now()
+    });
+
+    localStorage.setItem('rlyeh_marked', 'true');
+    input.value = '';
+  }
+
+  // 🔄 リアルタイム受信
+  postsRef.limitToLast(30).on('child_added', snapshot => {
+    const data = snapshot.val();
+    addPost(data.text, data.time);
+  });
+
+  // 👁 自動投稿（正体不明）
+  const autoPosts = [
+
+'佐藤一郎','鈴木太郎','高橋花子','田中健','伊藤美咲','渡辺翔','山本彩','中村直樹','小林真由','加藤誠',
+'吉田悠斗','山田奈々','佐々木亮','山口愛','松本大輔','井上里奈','木村拓也','林優子','清水航','斎藤恵',
+'森田剛','池田美優','橋本涼','阿部真琴','石川俊介','前田由紀','藤田健太','小川沙織','岡田悠','後藤理沙',
+'長谷川修','村上葵','近藤達也','石井彩乃','坂本隆','遠藤美香','青木亮介','藤井千尋','西村直人','福田麻衣',
+'太田和也','三浦結衣','岡本祐介','中島梨花','藤原聡','金子沙奈','小野大地','宮崎彩','内田慎吾','横山由佳',
+'高木航平','安藤真奈','島田拓','大野明日香','菅原亮','武田美月','上田剛','杉山奈緒','今井悠人','千葉紗也',
+'丸山直哉','久保田真由美','野口健一','松井優','市川翔太','新井美穂','岩崎大樹','古川琴音','川口達也','平野遥',
+'本田圭','関口由衣','神田亮','原田美咲','浜田悠介','大西彩香','竹内智也','北村奈津','小山雄大','永井真帆',
+'吉川俊','佐野絵里','松尾健吾','秋山美里','荒木拓真','黒田千夏','堀内亮太','川崎沙羅','土屋航','片山結菜',
+'大塚祐樹','宮本彩花','栗原慎','福井美紀','丹羽亮','白石萌','須藤健太郎','赤坂由美','桑原直樹','相馬梨紗',
+'西田悠真','桜井麻子','日高健','飯田彩音','松崎剛士','狩野美緒','榊原亮','水野真由','塚本大成','早川結',
+'柿崎航也','羽田美晴','小松直','滝沢彩','倉田健','沖田真希','沢田悠','富田沙季','新田大和','片岡美玲',
+'柳田剛','河野奈美','戸田亮','星野優花','吉岡健人','森下彩夏','畠山直','松野由紀','徳永航','高瀬真理',
+'岩田大輝','橋爪美咲','荻野亮','小泉沙耶','宮下健','大橋真央','浅野悠斗','中谷彩','若林直人','高井美穂',
+'梶原健太','須田由衣','奥村亮介','西岡真奈','成田航','長島彩乃','溝口剛','有村結','堤悠真','尾崎美沙',
+'一索 光里','狐西 贋','蛇亀 守','蝶野 友人','馬乗 力也','避役 彩羽','本渡坊薫','谷本大和','佐藤隆之介',
+'頭に回線通ってないだろ','脳みそが常時エラーなやつ','思考力が化石','存在がノイズ','TLの汚染源','アイツの中身空っぽ',
+'発言が全部的外れ','何一つ理解してない','会話する価値がない','知能が足りてない','脳内お花畑','現実見えてない',
+'妄想で生きてる','都合のいい世界線','自分が正しい前提','勘違いが重症','救いようがない','話すたびに評価下がる',
+'黙ってた方がマシ','発言が害','存在が迷惑','空気を腐らせる','場を壊す才能しかない','関わると損','時間の無駄',
+'無価値な発言','承認欲求の塊','必死すぎて見苦しい','痛々しい','見てて恥ずかしい','寒すぎて凍死',
+'センスが死んでる','笑えない冗談','冗談としても低レベル','思考が浅すぎ','浅瀬で溺れるタイプ','論理破綻してる',
+'日本語不自由','読解力皆無','話が通じない','会話不能','対話する知性がない','理解する気ゼロ','聞く耳持たない',
+'自己中の極み','自分大好き病','世界が自分中心','主役気取りのモブ','影が薄いのにうるさい','声だけデカい',
+'中身が伴ってない','実力皆無','努力の形跡なし','口だけ達者','行動ゼロ','結果ゼロ','価値ゼロ','信用マイナス',
+'信頼残高マイナス','嫌われ者ムーブ','嫌われる才能レベル100','人が離れる理由','孤立製造機','自爆常習','炎上請負人',
+'界隈の癌','界隈荒らし','関係者に迷惑','被害者量産','問題行動しかしない','無自覚な害悪','典型的地雷',
+'踏んではいけない存在','関わったら負け','ミュート即決','ブロック安定','ブロック推奨','存在ごと非表示',
+'見なかったことにしたい','記憶から消したい','黒歴史製造機','消せない恥','一生残るやつ','デジタルタトゥー量産',
+'後悔製造業','学習能力ゼロ','同じ失敗繰り返す','成長しない','改善する気なし','反省皆無','謝る気ゼロ',
+'謝罪風言い訳','言い訳の天才','責任転嫁職人','被害者ムーブ芸人','逆ギレ標準装備','批判耐性ゼロ','豆腐メンタル',
+'打たれ弱すぎ','都合悪いと逃亡','ブロック逃げ','論破されて沈黙','負けを認めない','負け犬ムーブ',
+'勝った気でいるだけ','現実逃避','妄言垂れ流し','嘘と誇張しかない','信用する価値なし','発言に重みゼロ',
+'説得力皆無','正論の皮を被ったゴミ','正義厨こじらせ','上から目線だけ一流','何様なのか不明','立場理解してない',
+'身の程知らず','勘違い主人公','存在理由不明','いなくても困らない','犯罪者だろｗ','それわかるわ',
+'むしろいない方が平和','邪魔でしかない','話題を止める天才','場を冷やす天才','雰囲気破壊装置','人を不快にする才能',
+'好かれる要素ゼロ','嫌悪感しかない','関わりたくない','見てるだけで疲れる','精神削ってくる',
+'害悪','中身スカスカ','虚無製造','無意味な存在','はい完全にアウト','もう無理','救済不可','終わってる','死ね','ブス',
+'障害','無能','無価値','無意味','無知','無恥','無様','無能者','愚か者','愚鈍','愚劣','愚昧','愚行','愚痴っぽい',
+'老害','ゴミ','臭い','クズ','カス','バカ','アホ','マヌケ','ドジ','ポンコツ','ヘタレ','チンピラ','ヤンキー','キチガイ','豚豚',
+'狼少年','嘘つき','裏切り者','詐欺師','泥棒','犯罪者','殺人鬼','変態','ストーカー','サイコパス','キモオタ','臭い'
+];
+  setInterval(() => {
+    postsRef.push({
+      text: autoPosts[Math.floor(Math.random()*autoPosts.length)],
+      time: Date.now()
+    });
+  }, 120000);
+  // === 深海音（40Hz） ===
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  function startDeepSea() {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.value = 100;
+    gain.gain.value = 0.05;
+    osc.connect(gain).connect(audioCtx.destination);
+    osc.start();
+  }
+  document.body.addEventListener('click', () => { if (audioCtx.state !== 'running') startDeepSea(); }, { once:true });
+
+  // === 異常イベント ===
+const anomalySounds = [
+  '恐怖.mp3',
+  'うなり.mp3',
+  'クトゥルフ・フタグン.mp3',
+  'ゴゴゴゴ.mp3',
+  '恐怖(10)万能.mp3',
+  '地震魔法1.mp3',
+  '深海.mp3'
+];
+
+
+function anomalyEvent() {
+  // 60%で発生
+  if (Math.random() > 0.6) return;
+
+  const effects = [
+    'anomaly-red',
+    'anomaly-shake',
+    'anomaly-crt',
+    'anomaly-full'
+  ];
+
+  const effect = effects[Math.floor(Math.random() * effects.length)];
+  document.body.classList.add(effect);
+
+  // 🔊 ランダム異常音
+  const soundSrc = anomalySounds[Math.floor(Math.random() * anomalySounds.length)];
+  const sound = new Audio(soundSrc);
+  sound.volume = 0.4;
+  sound.play();
+
+  // 持続時間もランダム（2〜6秒）
+  const duration = 11000 + Math.random() * 14000;
+
+  setTimeout(() => {
+    document.body.classList.remove(effect);
+    sound.pause();
+    sound.currentTime = 0;
+  }, duration);
+}
+// 30〜90秒のランダム間隔で発生
+function scheduleAnomaly() {
+  const next = 600000 + Math.random() * 600000;
+  setTimeout(() => {
+    anomalyEvent();
+    scheduleAnomaly();
+  }, next);
+}
+
+scheduleAnomaly();
+
+
+
+
+
+
+  setInterval(anomalyEvent, 90000);
+
+  
+
+
+  
+</script>
 </body>
 </html>
