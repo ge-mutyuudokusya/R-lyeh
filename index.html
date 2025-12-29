@@ -1,33 +1,37 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>ルルイエ</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- CSS -->
   <link rel="stylesheet" href="style.css">
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 </head>
-<body class="low">
 
-<div id="noise"></div>
+<body>
+<header>
+  <h1>R'lyeh / ルルイエ</h1>
+  <div style="font-size:12px;opacity:.7">※ この掲示板に書き込んだ者は記録される</div>
+</header>
 
-<main>
-  <h1>ルルイエ</h1>
+<div id="board"></div>
 
-  <p class="warning">
-    ※この掲示板に名前を書いた人物の生存は確認されていません。<br>
-    ※閲覧・書き込みは自己責任です。
-  </p>
+<div id="form">
+  <div>書き込み：</div>
+  <textarea id="input"></textarea>
+  <button onclick="sendPost()">送信</button>
+</div>
 
-  <section id="board"></section>
+<div class="noise"></div>
+<div class="crt" id="crt"></div>
+<div class="scanlines" id="scanlines" style="display:none"></div>
 
-  <form id="postForm">
-    <input type="text" id="name" placeholder="名前（推奨されません）">
-    <textarea id="message" placeholder="……それでも、書きますか？"></textarea>
-    <button type="submit">送信</button>
-  </form>
-
-  <div id="status"></div>
-</main>
-
-<script src="script.js"></script>
+<!-- JS（最後に読み込む） -->
+<script src="main.js"></script>
 </body>
 </html>
