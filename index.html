@@ -246,6 +246,10 @@ body.anomaly-full::after {
 <div class="crt" id="crt"></div>
 
 <script>
+    // 右クリック禁止
+  document.addEventListener('contextmenu', function (e) {
+    e.preventDefault();
+  });
   /* 🔥 Firebase設定（自分のものに差し替え） */
   const firebaseConfig = {
   apiKey: "AIzaSyC1IK8k7yfu7rEzGBsQHl9CLHLy1aCwYTE",
@@ -263,12 +267,13 @@ body.anomaly-full::after {
 
   const board = document.getElementById('board');
 
-  function addPost(text, time) {
-    const div = document.createElement('div');
-    div.className = 'post';
-    div.innerHTML = `<div>${text}</div><div class="time">${new Date(time).toLocaleString()}</div>`;
-    board.prepend(div);
-  }
+function addPost(text) {
+  const div = document.createElement('div');
+  div.className = 'post';
+  div.innerHTML = `<div>${text}</div>`;
+  board.prepend(div);
+}
+
 
   function sendPost() {
     const input = document.getElementById('input');
@@ -276,7 +281,7 @@ body.anomaly-full::after {
 
     postsRef.push({
       text: input.value,
-      time: Date.now()
+
     });
 
     localStorage.setItem('rlyeh_marked', 'true');
@@ -286,7 +291,7 @@ body.anomaly-full::after {
   // 🔄 リアルタイム受信
   postsRef.limitToLast(30).on('child_added', snapshot => {
     const data = snapshot.val();
-    addPost(data.text, data.time);
+    addPost(data.text);
   });
 
   // 👁 自動投稿（正体不明）
@@ -337,9 +342,8 @@ body.anomaly-full::after {
   setInterval(() => {
     postsRef.push({
       text: autoPosts[Math.floor(Math.random()*autoPosts.length)],
-      time: Date.now()
     });
-  }, 820000);
+  }, 120000);
   // === 深海音（40Hz） ===
   const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   function startDeepSea() {
@@ -419,6 +423,3 @@ scheduleAnomaly();
 </script>
 </body>
 </html>
-
-
-
