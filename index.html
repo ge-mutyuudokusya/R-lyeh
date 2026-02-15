@@ -1,164 +1,237 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<title>R'lyeh / ルルイエ</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <title>ルルイエ</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js">  // 🌊 深海音（40Hz）
 
-<style>
-body{
-  margin:0;
-  background:radial-gradient(circle,#020403 0%,#000 75%);
-  color:#b9c2b0;
-  font-family:"Yu Mincho",serif;
-  text-shadow:0 0 2px rgba(120,150,120,.2);
-  overflow:hidden;
-}
-header{
-  padding:18px;
-  text-align:center;
-  border-bottom:1px solid #133;
-}
-header h1{
-  letter-spacing:.25em;
-  font-weight:normal;
-  color:#7aa69d;
-  text-shadow:
-    0 0 5px rgba(50,120,100,.5),
-    0 0 18px rgba(0,40,30,.8);
-}
-#board{
-  height:520px;
-  overflow-y:auto;
-  margin:30px;
-  padding:12px;
-  background:rgba(0,0,0,.55);
-  border:1px solid #233;
-  box-shadow:
-    inset 0 0 35px rgba(0,0,0,.9),
-    0 0 20px rgba(0,80,60,.2);
-  backdrop-filter:blur(1px);
-}
-.post{
-  border-bottom:1px dashed #244;
-  padding:12px 0;
-}
-.post div{
-  animation:textGlitch .15s steps(2) infinite;
-  animation-play-state:paused;
-}
-#form{
-  max-width:800px;
-  margin:20px auto;
-  padding:16px;
-  border:1px solid #133;
-}
-textarea{
-  width:100%;
-  height:80px;
-  background:#000;
-  color:#cfd8c3;
-  border:1px solid #244;
-}
-button{
-  margin-top:8px;
-  background:#021;
-  color:#cfd8c3;
-  border:1px solid #355;
-  padding:6px 12px;
+  function playDeepSound() {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.value = 40;
+    gain.gain.value = 0.2;
+    osc.connect(gain).connect(audioCtx.destination);
+    osc.start();
+    return osc;
+  }
+
+  function triggerEvent() {
+    document.body.classList.add('event-dark','shake');
+    document.getElementById('scanlines').style.display = 'block';
+    const osc = playDeepSound();
+
+    setTimeout(() => {
+      document.body.classList.remove('event-dark','shake');
+      document.getElementById('scanlines').style.display = 'none';
+      osc.stop();
+      audioCtx.close();
+    }, 4000);
+  }
+
+  // ⏳ 定期イベント（3〜6分ランダム）
+  function scheduleEvent() {
+    const next = Math.random() * 180000 + 180000;
+    setTimeout(() => {
+      triggerEvent();
+      scheduleEvent();
+    }, next);
+  }
+  scheduleEvent();
+  // 🕯 定期的イベント（深海接触）
+  const crt = document.getElementById('crt');
+
+
+  function playDeepSeaSound() {
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+
+    osc.type = 'sine';
+    osc.frequency.value = 40; // 40Hz 深海音
+    gain.gain.value = 0.15;
+
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+
+    osc.start();
+    setTimeout(() => osc.stop(), 4000);
+  }
+
+  function deepSeaEvent() {
+    document.body.classList.add('event-dark','event-shake');
+    crt.classList.add('active');
+    playDeepSeaSound();
+
+    setTimeout(() => {
+      document.body.classList.remove('event-dark','event-shake');
+      crt.classList.remove('active');
+    }, 5000);
+  }
+
+  // ⏳ 不定期に発生（3〜7分）
+  function scheduleEvent() {
+    const next = Math.random() * (420000 - 180000) + 180000;
+    setTimeout(() => {
+      deepSeaEvent();
+      scheduleEvent();
+    }, next);
+  }
+
+  scheduleEvent();
+</script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+  <style>
+    body { margin:0; background:#020403; color:#cfd8c3; font-family:"Yu Mincho",serif; }
+    header { padding:16px; text-align:center; border-bottom:1px solid #133; }
+    #board {  height: 520px;  overflow-y: auto; border: 1px solid #233;  padding:10px; margin: 30px;  margin-bottom: 10px;  background: rgba(0,0,0,0.5);}
+   .post { border-bottom:1px dashed #244; padding:12px 0; }
+    .time { font-size:11px; opacity:0.6; }
+    #form { max-width:800px; margin:24px auto; padding:16px; border:1px solid #133; }
+    textarea { width:100%; height:80px; background:#000; color:#cfd8c3; border:1px solid #244; }
+    button { margin-top:8px; background:#021; color:#cfd8c3; border:1px solid #355; padding:6px 12px; }
+    /* ===== 異常イベント演出 ===== */
+body.anomaly {
+  animation: screenShake 0.1s infinite;
+  background-color: #300;
+  filter: contrast(200%) saturate(300%);
+}/* 共通 */
+body[class^="anomaly"] {
+  transition: all 0.2s;
 }
 
-/* ノイズ & CRT */
-.noise{
-  position:fixed;
-  inset:0;
-  pointer-events:none;
-  opacity:.05;
-  background:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="4"/></filter><rect width="200" height="200" filter="url(%23n)"/></svg>');
-}
-.crt{
-  position:fixed;
-  inset:0;
-  pointer-events:none;
-  background:repeating-linear-gradient(
-    to bottom,
-    rgba(255,255,255,.03) 0px,
-    rgba(0,0,0,.06) 2px,
-    rgba(0,0,0,0) 4px
-  );
-  mix-blend-mode:overlay;
-  opacity:0;
-}
-.crt.active{opacity:1}
-
-/* 異常 */
-@keyframes screenShake{
-  0%{transform:translate(0)}
-  25%{transform:translate(2px,-2px)}
-  50%{transform:translate(-2px,2px)}
-  75%{transform:translate(2px,2px)}
-  100%{transform:translate(0)}
-}
-@keyframes textGlitch{
-  0%{text-shadow:1px 0 red,-1px 0 cyan}
-  50%{text-shadow:-2px 0 red,2px 0 cyan}
-  100%{text-shadow:none}
-}
-body.anomaly-full{
-  animation:screenShake .08s infinite;
-  filter:contrast(220%) saturate(180%) blur(.6px) hue-rotate(-10deg);
-}
-body.anomaly-full .post div{
-  animation-play-state:running;
-}
-body.anomaly-full::before{
+/* 赤転のみ */
+body.anomaly-red::before {
   content:'';
   position:fixed;
   inset:0;
-  background:rgba(180,0,0,.6);
+  background:rgba(180,0,0,0.6);
+  z-index:9998;
+  pointer-events:none;
+}
+
+/* 揺れのみ */
+body.anomaly-shake {
+  animation: screenShake 0.1s infinite;
+}
+
+/* CRT走査線 */
+body.anomaly-crt::after {
+  content:'';
+  position:fixed;
+  inset:0;
+  background:repeating-linear-gradient(
+    to bottom,
+    rgba(255,255,255,0.04) 16px,
+    rgba(255,255,255,0.04) 24px,
+    rgba(0,0,0,0) 8px,
+    rgba(0,0,0,0) 30px
+  );
+  z-index:9999;
+  pointer-events:none;
+  animation: scanline 0.15s linear infinite;
+}
+
+/* 全部盛り（レア） */
+body.anomaly-full {
+  animation: screenShake 0.08s infinite;
+  filter: contrast(200%) saturate(300%);
+}
+body.anomaly-full::before {
+  content:'';
+  position:fixed;
+  inset:0;
+  background:rgba(200,0,0,0.7);
   z-index:9998;
 }
-body.anomaly-full::after{
+body.anomaly-full::after {
   content:'';
   position:fixed;
   inset:0;
   background:repeating-linear-gradient(
     to bottom,
-    rgba(255,255,255,.05) 0px,
-    rgba(255,255,255,.05) 1px,
+    rgba(255,255,255,0.05) 0px,
+    rgba(255,255,255,0.05) 1px,
     rgba(0,0,0,0) 2px,
     rgba(0,0,0,0) 4px
   );
   z-index:9999;
 }
 
-/* 監視 */
-body::after{
-  content:"● REC";
-  position:fixed;
-  bottom:10px;
-  right:14px;
-  font-size:11px;
-  color:rgba(200,0,0,.6);
-  animation:blink 1.2s infinite;
+@keyframes screenShake {
+  0% { transform:translate(0,0); }
+  25% { transform:translate(2px,-2px); }
+  50% { transform:translate(-2px,2px); }
+  75% { transform:translate(2px,2px); }
+  100% { transform:translate(0,0); }
 }
-@keyframes blink{
-  0%,50%{opacity:1}
-  51%,100%{opacity:0}
+
+@keyframes scanline {
+  from { background-position:0 0; }
+  to { background-position:0 4px; }
 }
-body:hover{cursor:none}
-</style>
+
+    .noise { position:fixed; inset:0; pointer-events:none; opacity:0.05;
+      background:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="4"/></filter><rect width="200" height="200" filter="url(%23n)"/></svg>'); }
+    /* 👁 イベント演出 */
+    .event-dark {
+      animation: darken 0.5s forwards;
+    }
+    @keyframes darken { to { background:#000; } }
+
+    .shake {
+      animation: shake 0.1s infinite;
+    }
+    @keyframes shake {
+      0% { transform: translate(0,0); }
+      25% { transform: translate(2px,-2px); }
+      50% { transform: translate(-2px,2px); }
+      75% { transform: translate(2px,2px); }
+      100% { transform: translate(0,0); }
+    }
+
+    .scanlines {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background: repeating-linear-gradient(
+        to bottom,
+        rgba(255,255,255,0.03) 0px,
+        rgba(255,255,255,0.03) 1px,
+        transparent 2px,
+        transparent 4px
+      );
+      opacity: 0.4;
+      mix-blend-mode: overlay;
+    }
+@keyframes shake {0%{transform:translate(0)}20%{transform:translate(-5px,3px)}40%{transform:translate(5px,-3px)}60%{transform:translate(-3px,5px)}80%{transform:translate(3px,-5px)}100%{transform:translate(0)}}
+    .event-dark { background:#000 !important; }
+    .event-shake { animation: shake 0.1s infinite; }
+    .crt {
+      position: fixed; inset:0; pointer-events:none;
+      background: repeating-linear-gradient(
+        to bottom,
+        rgba(255,255,255,0.03) 0px,
+        rgba(0,0,0,0.03) 1px,
+        rgba(0,0,0,0.06) 2px
+      );
+      mix-blend-mode: overlay;
+      opacity:0;
+    }
+    .crt.active { opacity:1; }
+  </style>
+
+<div class="scanlines" id="scanlines" style="display:none"></div>
 </head>
-
 <body>
-
 <header>
   <h1>R'lyeh / ルルイエ</h1>
-  <div style="font-size:12px;opacity:.7">※ この掲示板に書き込んだ者は記録される</div>
+  <div style="font-size:12px;opacity:.7">いなくなって欲しい人は神隠し合わせましょう</div>
 </header>
 
 <div id="board"></div>
@@ -173,74 +246,145 @@ body:hover{cursor:none}
 <div class="crt" id="crt"></div>
 
 <script>
-/* ===== 右クリック・キー操作禁止 ===== */
-document.addEventListener('contextmenu',e=>e.preventDefault());
-document.addEventListener('keydown',e=>{
-  if(
-    e.key==="F12" ||
-    (e.ctrlKey && e.shiftKey && ["I","J","C"].includes(e.key)) ||
-    (e.ctrlKey && e.key==="U")
-  ){
+    // 右クリック禁止
+  document.addEventListener('contextmenu', function (e) {
     e.preventDefault();
+  });
+  /* 🔥 Firebase設定（自分のものに差し替え） */
+const firebaseConfig = {
+  apiKey: "AIzaSyC1IK8k7yfu7rEzGBsQHl9CLHLy1aCwYTE",
+  authDomain: "rlyeh-board.firebaseapp.com",
+  databaseURL: "https://rlyeh-board-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "rlyeh-board",
+  storageBucket: "rlyeh-board.firebasestorage.app",
+  messagingSenderId: "107455035572",
+  appId: "1:107455035572:web:2128ec27aefe2afe6f3fe1"
+};
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+  const postsRef = db.ref('posts');
+
+  const board = document.getElementById('board');
+
+function addPost(text) {
+  const div = document.createElement('div');
+  div.className = 'post';
+  div.innerHTML = `<div>${text}</div>`;
+  board.prepend(div);
+}
+
+
+  function sendPost() {
+    const input = document.getElementById('input');
+    if (!input.value.trim()) return;
+
+    postsRef.push({
+      text: input.value,
+
+    });
+
+    localStorage.setItem('rlyeh_marked', 'true');
+    input.value = '';
   }
-});
 
-/* Firebase */
-firebase.initializeApp({
-  apiKey:"AIzaSyC1IK8k7yfu7rEzGBsQHl9CLHLy1aCwYTE",
-  authDomain:"rlyeh-board.firebaseapp.com",
-  databaseURL:"https://rlyeh-board-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId:"rlyeh-board"
-});
-const db=firebase.database();
-const postsRef=db.ref('posts');
-const board=document.getElementById('board');
-const crt=document.getElementById('crt');
+  // 🔄 リアルタイム受信
+  postsRef.limitToLast(30).on('child_added', snapshot => {
+    const data = snapshot.val();
+    addPost(data.text);
+  });
 
-/* 投稿追加（時刻なし） */
-function addPost(text){
-  const d=document.createElement('div');
-  d.className='post';
-  d.innerHTML=`<div>${text}</div>`;
-  board.prepend(d);
-}
+  // 👁 自動投稿（正体不明）
+  const autoPosts = [
 
-postsRef.limitToLast(30).on('child_added',s=>{
-  const d=s.val();
-  addPost(d.text);
-});
+'佐藤一郎','鈴木太郎','高橋花子','田中健','伊藤美咲','渡辺翔','山本彩','中村直樹','小林真由','加藤誠',
+'吉田悠斗','山田奈々','佐々木亮','山口愛','松本大輔','井上里奈','木村拓也','林優子','清水航','斎藤恵',
+'森田剛','池田美優','橋本涼','阿部真琴','石川俊介','前田由紀','藤田健太','小川沙織','岡田悠','後藤理沙',
 
-function sendPost(){
-  const i=document.getElementById('input');
-  if(!i.value.trim())return;
-  postsRef.push({text:i.value});
-  i.value='';
-}
+'一索 光里','一索 光里','一索 光里','一索 光里','一索 光里','一索 光里','一索 光里','一索 光里','一索 光里','一索 光里','一索 光里','一索 光里','一索 光里','一索 光里','一索 光里','一索 光里','一索 光里','一索 光里','一索 光里','一索 光里','一索 光里','一索 光里','一索 光里','一索 光里','一索 光里','一索 光里','一索 光里','一索 光里','一索 光里','一索 光里','一索 光里','一索 光里','一索 光里','一索 光里','一索 光里','一索 光里','一索 光里','一索 光里','一索 光里','一索 光里','一索 光里','一索 光里','一索 光里','一索 光里','一索 光里','一索 光里','一索 光里','一索 光里','一索 光里','一索 光里','一索 光里','一索 光里','一索 光里','一索 光里','一索 光里','一索 光里','一索 光里','一索 光里','一索 光里','一索 光里','一索 光里','一索 光里','一索 光里','一索 光里','一索 光里','一索 光里','一索 光里','一索 光里','一索 光里','一索 光里',
 
-/* 深海音 */
-const audioCtx=new (window.AudioContext||window.webkitAudioContext)();
-document.body.addEventListener('click',()=>{
-  if(audioCtx.state!=="running"){
-    const o=audioCtx.createOscillator();
-    const g=audioCtx.createGain();
-    o.frequency.value=40;
-    g.gain.value=.05;
-    o.connect(g).connect(audioCtx.destination);
-    o.start();
+];
+  setInterval(() => {
+    postsRef.push({
+      text: autoPosts[Math.floor(Math.random()*autoPosts.length)],
+    });
+  }, 120000);
+  // === 深海音（40Hz） ===
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  function startDeepSea() {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.value = 190;
+    gain.gain.value = 0.05;
+    osc.connect(gain).connect(audioCtx.destination);
+    osc.start();
   }
-},{once:true});
+  document.body.addEventListener('click', () => { if (audioCtx.state !== 'running') startDeepSea(); }, { once:true });
 
-/* 異常イベント */
-function anomaly(){
-  if(Math.random()>0.6)return;
-  document.body.classList.add('anomaly-full');
-  crt.classList.add('active');
-  setTimeout(()=>{
-    document.body.classList.remove('anomaly-full');
-    crt.classList.remove('active');
-  },8000+Math.random()*8000);
+  // === 異常イベント ===
+const anomalySounds = [
+  '恐怖.mp3',
+  'うなり.mp3',
+  'クトゥルフ・フタグン.mp3',
+  'ゴゴゴゴ.mp3',
+  '恐怖(10)万能.mp3',
+  '地震魔法1.mp3',
+  '深海.mp3'
+];
+
+
+function anomalyEvent() {
+  // 60%で発生
+  if (Math.random() > 0.6) return;
+
+  const effects = [
+    'anomaly-red',
+    'anomaly-shake',
+    'anomaly-crt',
+    'anomaly-full'
+  ];
+
+  const effect = effects[Math.floor(Math.random() * effects.length)];
+  document.body.classList.add(effect);
+
+  // 🔊 ランダム異常音
+  const soundSrc = anomalySounds[Math.floor(Math.random() * anomalySounds.length)];
+  const sound = new Audio(soundSrc);
+  sound.volume = 0.4;
+  sound.play();
+
+  // 持続時間もランダム（2〜6秒）
+  const duration = 11000 + Math.random() * 14000;
+
+  setTimeout(() => {
+    document.body.classList.remove(effect);
+    sound.pause();
+    sound.currentTime = 0;
+  }, duration);
 }
-setInterval(anomaly,90000);
+// 30〜90秒のランダム間隔で発生
+function scheduleAnomaly() {
+  const next = 600000 + Math.random() * 600000;
+  setTimeout(() => {
+    anomalyEvent();
+    scheduleAnomaly();
+  }, next);
+}
+
+scheduleAnomaly();
+
+
+
+
+
+
+  setInterval(anomalyEvent, 90000);
+
+  
+
+
+  
 </script>
 </body>
 </html>
